@@ -12,12 +12,15 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import re
 import secrets
 import time
 from functools import lru_cache
 
 from .planner import PlannerError, parse_json_object
+
+log = logging.getLogger("ga5")
 
 PROFILE = "ga5-incident-agent/v2"
 AGENT_NAME = "incident-response"
@@ -216,9 +219,10 @@ def _run_planner(planner, incident, catalog, policy) -> dict:
             end = now_ns()
             plan = validate_plan(parse_json_object(text), incident, catalog, policy)
             return {"plan": plan, "model": planner.model, "startNs": start, "endNs": end, "error": None}
-        except Exception:  # planner transport, parsing, or validation failure
+        except Exception as exc:  # planner transport, parsing, or validation failure
             end = now_ns()
             error = "planner_failed"
+            log.error("planner attempt failed: %s: %s", type(exc).__name__, exc)
     return {"plan": None, "model": planner.model, "startNs": start, "endNs": end, "error": error}
 
 
