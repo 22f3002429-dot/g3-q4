@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: ga5-incident-agent
+    runtime: python
+    plan: starter            # persistent disks require a paid plan
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.4
+      - key: DATA_DIR
+        value: /var/data
+      - key: LLM_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: LLM_MODEL
+        value: llama-3.1-8b-instant
+      - key: LLM_TIMEOUT_SECONDS
+        value: "8"
+      - key: LLM_API_KEY
+        sync: false          # set in the Render dashboard, never in code
+    disk:
+      name: ga5-data
+      mountPath: /var/data
+      sizeGB: 1
